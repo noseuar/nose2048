@@ -2,113 +2,99 @@ values = [2, 4];
 
 class Blocks {
   
-  constructor(w, h) {
+  constructor() {
     this.blocks = [];
-    this.nBlocks = w * h;
-
-    for (let y = 0; y < B_NUM_H; y++) {
-      for (let x = 0; x < B_NUM_W; x++) {
-        this.blocks.push(new Block(x, y, null, false));
-      }
-    }
   }
 
   show() {
-    for (let b of this.blocks) {
-      b.show();
-    }
+    this.blocks.forEach(e => e.show());
   }
 
   update() {
-    let noMove = true;
-    for (let x = 0; x < B_NUM; x++) {
-      if (   this.blocks[x].isActive() && 
-          !(this.blocks[x].justMvd()) && 
-          x < ((B_NUM) - B_NUM_W) &&
-          this.noBlockBelow(x)) {
-        
-            this.blocks[x+B_NUM_W].setActive(this.blocks[x].val);
-            this.blocks[x].deactivate();
-            noMove = false;
+    let otherObject = null;
+    for (let idx = 0; idx < this.blocks.length; idx++) {
+      if (this.blocks[idx].isActive()) {
+        otherObject = this.landedOn(this.blocks[idx]);
+        if (otherObject != null) {
+          if (otherObject.val != this.blocks[idx].val) {
+            this.blocks[idx].stopp();
+          } else {
+            console.log(otherObject);
+            console.log("oben y: " + str(this.blocks[idx].y) + " unten " + str(otherObject.y) );
+            otherObject.val *= 2;
+            this.blocks.splice(idx, 1);
+          }
+        }
       }
     }
+
     for (let b of this.blocks) {
-      b.moveDone();
+      b.update();
     }
-    
-    for (let idx = 0; idx < this.blocks.length - B_NUM_W; idx++) {
-      if (this.blocks[idx].val == this.blocks[idx+B_NUM_W].val) {
-        this.blocks[idx].deactivate();
-        this.blocks[idx].val = null;
-        this.blocks[idx+B_NUM_W].val *= 2;
+
+    let needMore = true;
+    for (let idx = 0; idx < this.blocks.length; idx++) {
+      if (this.blocks[idx].active) {
+        needMore = false;
       }
     }
-    
-    if (noMove) {
+
+    if (needMore) {
       this.addNew();
-    }
-  }
-
-  moveRight() {
-    for (let idx = this.blocks.length - B_NUM_W - 1; idx >= 0; idx--) {
-      if (this.blocks[idx].val != null) {
-        
-        this.blocks[idx+1] = this.blocks[idx];
-        this.blocks[idx].val = null;
-        this.blocks[idx].active = false;
-        this.blocks[idx].justMoved = false;
-      }
-    }
-  }
-
-  moveLeft() {
-    for (let idx = 0; idx < this.length - B_NUM_W; idx++) {
-      if ((idx > 0) && this.blocks[idx].val != null) {
-        this.blocks[idx-1] = this.blocks[idx];
-        this.blocks[idx].val = null;
-        this.blocks[idx].active = false;
-        this.blocks[idx].justMoved = false;
-      }
-    }
-  }
-
-  noBlockBelow(pos) {
-    if (this.blocks[pos+B_NUM_W].isActive()) {
-      return false;
-    } else {
-      return true;
     }
   }
 
   addNew() {
     let newRow = floor(random(B_NUM_W));
-    this.blocks[newRow] = new Block(newRow, 0, random(values), true);
+    this.blocks.push(new Block(newRow, 0, random(values), true));
+  }
+
+  landedOn(obj) {
+    let retObj = null;
+    for (let idx = 0; idx < this.blocks.length; idx++) {
+
+      if ((this.blocks[idx].isActive() != true) &&
+         ((obj.x + BLOCKS_WIDTH/2) > this.blocks[idx].x ) && 
+         ((obj.x + BLOCKS_WIDTH/2) < (this.blocks[idx].x + BLOCKS_WIDTH)) && 
+         ((obj.y + BLOCKS_HEIGHT) >= this.blocks[idx].y)){
+            retObj = this.blocks[idx];
+          }
+      
+    }
+    return retObj;
   }
 }
 
 class Block {
   constructor(x, y, val = null, active = true) {
-    this.x = x;
-    this.y = y;
+    this.x = x * BLOCKS_WIDTH;
+    this.y = y * BLOCKS_HEIGHT;
     this.val = val;
     this.active = active;
-    this.justMoved = false;
   }
 
   show() {
-    if (this.active) {
-      fill(232, 131, 31, map(this.val, 2, 248, 50, 255));
-      rect(this.x * BLOCKS_WIDTH, this.y * BLOCKS_HEIGHT, BLOCKS_WIDTH, BLOCKS_HEIGHT, BLOCKS_HEIGHT/5);
-      textAlign(CENTER);
-      fill(255);
-      textSize(32);
-      text(str(this.val), this.x * BLOCKS_WIDTH + BLOCKS_WIDTH / 2, this.y * BLOCKS_HEIGHT + BLOCKS_HEIGHT / 2 + 4);
-      console.log("show() " + this);
+    
+    fill(232, 131, 31, map(this.val, 2, 248, 50, 255));
+    rect(this.x, this.y, BLOCKS_WIDTH, BLOCKS_HEIGHT, BLOCKS_HEIGHT/5);
+    textAlign(CENTER);
+    fill(255);
+    textSize(32);
+    text(str(this.val), this.x + BLOCKS_WIDTH / 2, this.y + BLOCKS_HEIGHT / 2 + 4);
+    console.log("show() " + this);
+    
+  }
+
+  update() {
+    if ((this.active == true)&&(this.y + BLOCKS_HEIGHT) < height) {
+      this.y = this.y + 2;
+    } else {
+      this.active = false;
     }
   }
 
   isActive() {
-    return this.active;
+    return (this.active);
   }
 
   setActive(val) {
@@ -117,9 +103,8 @@ class Block {
     this.justMoved = true;
   }
 
-  deactivate() {
+  stopp() {
     this.active = false;
-    this.val = null;
   }
 
   justMvd() {
