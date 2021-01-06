@@ -170,6 +170,7 @@ class Block {
     strokeWeight(BLOCKS_WIDTH/30);
     stroke(200, 100, 30);
     //console.log(Math.log2(this.val));
+    //fill(232, 131, 31, Math.log2(this.val)*20);
     fill(232, 131, 31, Math.log2(this.val)*20);
     rect(this.x, this.y, BLOCKS_WIDTH, BLOCKS_HEIGHT, BLOCKS_HEIGHT/5);
     textAlign(CENTER);
