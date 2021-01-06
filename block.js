@@ -169,7 +169,8 @@ class Block {
   show() {
     strokeWeight(BLOCKS_WIDTH/30);
     stroke(200, 100, 30);
-    fill(232, 131, 31, map(this.val, 2, 248, 50, 255));
+    //console.log(Math.log2(this.val));
+    fill(232, 131, 31, Math.log2(this.val)*20);
     rect(this.x, this.y, BLOCKS_WIDTH, BLOCKS_HEIGHT, BLOCKS_HEIGHT/5);
     textAlign(CENTER);
     fill(255);
